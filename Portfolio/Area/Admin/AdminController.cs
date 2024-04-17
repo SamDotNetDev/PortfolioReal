@@ -31,7 +31,7 @@ namespace Portfolio.Area.Admin
         }
 
         [HttpPost("AboutMe")]
-        public IActionResult AddAboutMe(Informations aboutMe)
+        public IActionResult AddAboutMe([FromForm]string AboutMe)
         {
             var existInfo = _context.InfoAboutMe.FirstOrDefault();
             if (existInfo != null)
@@ -41,7 +41,7 @@ namespace Portfolio.Area.Admin
 
             Informations model = new()
             {
-                AboutMe = aboutMe.AboutMe
+                AboutMe = AboutMe
             };
             _context.InfoAboutMe.Add(model);
             _context.SaveChanges();
