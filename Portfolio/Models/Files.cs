@@ -2,6 +2,6 @@
 {
     public class Files
     {
-        public IFormFile PDF {  get; set; }
+        public IFormFile File {  get; set; }
     }
 }

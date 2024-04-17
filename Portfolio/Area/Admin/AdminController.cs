@@ -2,6 +2,7 @@
 using Portfolio.Data;
 using Portfolio.Models;
 using Portfolio.Statuses;
+using System.Globalization;
 using System.Net.Http.Headers;
 
 namespace Portfolio.Area.Admin
@@ -53,17 +54,35 @@ namespace Portfolio.Area.Admin
         [HttpGet("GetCV")]
         public IActionResult GetCVLink()
         {
+            var model = _context.Works.FirstOrDefault();
+            var file = _context.Works;
+            if (model != null)
+            {
+                var pfd = _context.CvLink.Select(i => new
+                {
+                    Url = Url.Action(nameof(GetCV), new { id = i.Id, Request.Scheme })
+                }).ToList();
+
+                return Ok(new Status() { Message = nameof(StatusMessage.Success), Data = pfd });
+            }
+
+            return Ok(new Status() { Message = nameof(StatusMessage.NotFound) });
+        }
+
+        [HttpGet("GetCVToDownload")]
+        public IActionResult GetCV()
+        {
             var file = _context.CvLink.FirstOrDefault();
             if (file == null)
                 return Ok(new Status() { Message = nameof(StatusMessage.NotFound) });
 
             var contentDisposition = new ContentDispositionHeaderValue("attachment")
             {
-                FileName = "CV"
+                FileName = "CV.pdf"
             };
-
             Response.Headers.Add("Content-Disposition", contentDisposition.ToString());
             Response.Headers.Add("X-Content-Type-Options", "nosniff");
+
             return File(file.CVLink, "application/pdf");
         }
 
@@ -74,12 +93,12 @@ namespace Portfolio.Area.Admin
             if (existCV != null)
                 _context.CvLink.Remove(existCV);
 
-            if (file == null || file.PDF.Length == 0)
+            if (file == null || file.File.Length == 0)
                 return Ok(new Status() { Message = nameof(StatusMessage.Error) });
 
             using (var ms = new MemoryStream())
             {
-                file.PDF.CopyTo(ms);
+                file.File.CopyTo(ms);
                 var fileBytes = ms.ToArray();
                 var pdfFile = new CV { CVLink = fileBytes };
                 _context.CvLink.Add(pdfFile);
@@ -95,24 +114,49 @@ namespace Portfolio.Area.Admin
         public IActionResult GetAllRecentWorks()
         {
             var model = _context.Works.FirstOrDefault();
-            var recentWorks = _context.Works;
-            return model!=null 
-                ? Ok(new Status() { Message = nameof(StatusMessage.Success), Data = model })
-                : Ok(new Status() { Message = nameof(StatusMessage.NotFound) });
+            var file = _context.Works;
+            if (model != null)
+            {
+                var images = _context.Works.Select(i => new
+                {
+                    i.Id,
+                    i.AboutProject,
+                    Url = Url.Action(nameof(GetImage), new { id = i.Id ,Request.Scheme}) // Generating URL for downloading each image
+                }).ToList();
+
+                return Ok(new Status() { Message = nameof(StatusMessage.Success),Data = images});
+            } 
+
+            return Ok(new Status() { Message = nameof(StatusMessage.NotFound) });
+        }
+
+        [HttpGet("GetImageToDownload/{id}")]
+        public IActionResult GetImage(int id)
+        {
+            var image = _context.Works.Find(id);
+            if (image == null)
+            {
+                return Ok(new Status() { Message = nameof(StatusMessage.NotFound) });
+            }
+
+            // Return the image as a file
+            return File(image.Image, "image/jpeg", $"{id}.jpg");
         }
 
         [HttpPost("RecentWokrs")]
-        public IActionResult AddRecentWorks(RecentWorks resentWorks)
+        public IActionResult AddRecentWorks([FromForm] Files file, string About)
         {
             if (_context.Works.Count() < 10)
             {
-                RecentWorks model = new()
+                using (var ms = new MemoryStream())
                 {
-                    AboutProject = resentWorks.AboutProject
-                };
-                _context.Works.Add(model);
-                _context.SaveChanges();
-                return Ok(new Status() { Message = nameof(StatusMessage.Success), Data = model });
+                    file.File.CopyTo(ms);
+                    var fileBytes = ms.ToArray();
+                    var jpgFile = new RecentWorks { Image = fileBytes,AboutProject = About };
+                    _context.Works.Add(jpgFile);
+                    _context.SaveChanges();
+                    return Ok(new Status() { Message = nameof(StatusMessage.Success) });
+                }
             }
             return Ok(new Status() { Message = nameof(StatusMessage.IndexOutOfBounds) });
         }
