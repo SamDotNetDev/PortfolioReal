@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Portfolio.Models
 {
     [Table("AboutMe")]
-    public class Informations
+    public class AboutMeInfo
     {
         [Key]
         [Required]

@@ -38,7 +38,7 @@ namespace Portfolio.Area.Admin
                 _context.InfoAboutMe.Remove(existInfo);
             }
 
-            Informations model = new()
+            AboutMeInfo model = new()
             {
                 AboutMe = AboutMe
             };
@@ -120,7 +120,9 @@ namespace Portfolio.Area.Admin
                 {
                     i.Id,
                     i.AboutProject,
+                    i.Type,
                     Url = Url.Action(nameof(GetImage), new { id = i.Id ,Request.Scheme}) // Generating URL for downloading each image
+                    
                 }).ToList();
 
                 return Ok(new Status() { Message = nameof(StatusMessage.Success),Data = images});
@@ -143,7 +145,7 @@ namespace Portfolio.Area.Admin
         }
 
         [HttpPost("RecentWokrs")]
-        public IActionResult AddRecentWorks([FromForm] Files file, string About)
+        public IActionResult AddRecentWorks([FromForm] Files file, string About, string Type)
         {
             if (_context.Works.Count() < 10)
             {
@@ -151,7 +153,7 @@ namespace Portfolio.Area.Admin
                 {
                     file.File.CopyTo(ms);
                     var fileBytes = ms.ToArray();
-                    var jpgFile = new RecentWorks { Image = fileBytes,AboutProject = About };
+                    var jpgFile = new RecentWorks { Image = fileBytes,AboutProject = About, Type = Type };
                     _context.Works.Add(jpgFile);
                     _context.SaveChanges();
                     return Ok(new Status() { Message = nameof(StatusMessage.Success) });

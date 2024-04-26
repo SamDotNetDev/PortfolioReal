@@ -9,7 +9,7 @@ namespace Portfolio.Data
             :base(options) { }
 
         public DbSet<CV> CvLink {  get; set; }
-        public DbSet<Informations> InfoAboutMe { get; set; }
+        public DbSet<AboutMeInfo> InfoAboutMe { get; set; }
         public DbSet<RecentWorks> Works { get; set; } 
     }
 }

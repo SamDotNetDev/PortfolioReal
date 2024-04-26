@@ -15,5 +15,8 @@ namespace Portfolio.Models
 
         [Required]
         public string AboutProject { get; set; }
+
+        [Required]
+        public string Type { get; set; }
     }
 }
