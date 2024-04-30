@@ -14,13 +14,13 @@ namespace Portfolio
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddDbContext<PortfolioDbContext>(options => 
-            options.UseSqlServer(connectionString));
+            options.UseNpgsql(connectionString));
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
